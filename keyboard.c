@@ -110,6 +110,8 @@ void init() {
   ioctl(fd, UI_SET_KEYBIT, KEY_TAB);
   ioctl(fd, UI_SET_KEYBIT, KEY_ENTER);
   ioctl(fd, UI_SET_KEYBIT, KEY_BACKSPACE);
+  ioctl(fd, UI_SET_KEYBIT, KEY_LEFTSHIFT);
+  ioctl(fd, UI_SET_KEYBIT, KEY_SPACE);
 
   // Activación del evento de tecla
   ioctl(fd, UI_SET_EVBIT, EV_KEY);

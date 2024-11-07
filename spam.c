@@ -1,46 +1,67 @@
 #include "keyboard.c"
 #include "keys.c"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-int searchCode(char c) {
-  for (int k = 0; k < sizeof(keys) / sizeof(*keys); k++) {
-    if (c == keys[k].name[0]) {
-      return keys[k].code;
+Key *searchCode(char *c) {
+  for (int k = 1; k < sizeof(keys) / sizeof(*keys); k++) {
+    if (*c == keys[k].name[0]) {
+      return &keys[k];
     }
   }
-  return -1;
+  return NULL;
 }
 
 int main(int argc, char *argv[]) {
+  if (argc != 3) {
+    printf("Usage: %s <message> <times>\n", argv[0]);
+    return 2;
+  }
+
+  sleep(2);
+
+  char *spam = argv[1];
+  int NUMBER_OF_SPAMS = strtol(argv[2], NULL, 10);
+
   init();
 
-  int NUMBER_OF_SPAMS = 1;
-  int delay;
-  char *spam = "BESOS HOLA  QUE TAL";
+  const int message_length = strlen(spam);
+  Key *message_codes[message_length];
 
-  // scanf("Cuantos loops?: %d", &NUMBER_OF_SPAMS);
+  for (int j = 0; j < message_length; j++) {
+    Key *key = searchCode(&spam[j]);
+    if (key != NULL) {
+      message_codes[j] = key;
+    } else {
+      printf("Warning: Character '%c' not found in keys, skipping.\n", spam[j]);
+      message_codes[j] = 0;
+    }
+  }
 
-  // sleep(2);
   for (int i = 0; i < NUMBER_OF_SPAMS; i++) {
-    push(KEY_LEFTSHIFT);
+    for (int j = 0; j < message_length; j++) {
+      if (message_codes[j] != 0) {
+        if (isupper(*message_codes[j]->name)) {
+          push(KEY_LEFTSHIFT);
+        }
 
-    for (int j = 0; j < strlen(spam); j++) {
-      int code = searchCode(spam[j]);
-      if (code != -1) {
-        pushRelease(code);
+        pushRelease(message_codes[j]->code);
+
+        if (isupper(*message_codes[j]->name)) {
+          release(KEY_LEFTSHIFT);
+        }
       }
-
-      release(KEY_LEFTSHIFT);
-      pushRelease(KEY_ENTER);
-
-      delay = rand() % 2 + 1;
-      sleep(delay);
-
-      refresh();
     }
 
-    close_device();
-    return 0;
+    pushRelease(KEY_ENTER);
+
+    int delay = rand() % 3;
+    sleep(delay);
+    refresh();
   }
+
+  close_device();
+  return 0;
 }
